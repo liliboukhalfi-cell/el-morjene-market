@@ -257,7 +257,7 @@ class ElMorjeneApp {
         </div>
         <div style="position:absolute;bottom:18%;left:6%;animation:float 6s 1s ease-in-out infinite;opacity:0.6;">
           <div style="background:rgba(253,246,236,0.9);border:2px solid rgba(196,87,26,0.3);padding:8px 14px;border-radius:12px;transform:rotate(-6deg);box-shadow:0 4px 16px rgba(44,26,14,0.08);">
-            <div style="font-size:9px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#C4571A;">6 saveurs</div>
+            <div style="font-size:9px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#C4571A;">3 saveurs</div>
           </div>
         </div>
       </section>
