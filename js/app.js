@@ -10,7 +10,7 @@ class ElMorjeneApp {
       slideDir: 'right',
       animKey: 0,
       catalogFilter: 'tous',
-      checkoutForm: { nom: '', adresse: '', tel: '', note: '' },
+      checkoutForm: { nom: '', email: '', adresse: '', tel: '', note: '' },
       orderConfirmed: false,
       orderNumber: '',
       selectedProduct: null
@@ -151,7 +151,30 @@ class ElMorjeneApp {
     this.render();
   }
 
+  submitOrder() {
+    const f = this.state.checkoutForm;
+    const items = this.state.cart;
+    const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0);
+    const delivery = items.reduce((s, i) => s + i.qty, 0) * 0.5;
+    const total = (subtotal + delivery).toFixed(2);
+    const orderNumber = 'EM-' + Date.now().toString().slice(-6);
+
+    const panierDetails = items.map(i => `${i.name} (${i.size}) × ${i.qty} = ${(i.price * i.qty).toFixed(2)} Fr.`).join('\n');
+
+    const form = document.querySelector('form[name="commande-el-morjene"]');
+    form.querySelector('input[name="nom"]').value = f.nom;
+    form.querySelector('input[name="email"]').value = f.email || '';
+    form.querySelector('input[name="tel"]').value = f.tel;
+    form.querySelector('input[name="adresse"]').value = f.adresse;
+    form.querySelector('textarea[name="note"]').value = f.note;
+    form.querySelector('textarea[name="panier"]').value = `Commande #${orderNumber}\n\n${panierDetails}\n\nSous-total: ${subtotal.toFixed(2)} Fr.\nLivraison: ${delivery.toFixed(2)} Fr.`;
+    form.querySelector('input[name="total"]').value = total;
+
+    form.submit();
+  }
+
   confirmOrder() {
+    this.submitOrder();
     const orderNumber = 'EM-' + Date.now().toString().slice(-6);
     this.setState({ orderConfirmed: true, orderNumber });
   }
@@ -640,7 +663,7 @@ class ElMorjeneApp {
             <h1 style="font-family:'Playfair Display';font-size:42px;font-weight:900;font-style:italic;color:#2C1A0E;margin-bottom:10px;">Commande confirmée !</h1>
             <p style="font-size:14px;font-weight:500;color:rgba(44,26,14,0.55);margin-bottom:8px;">Numéro de commande : <strong style="color:#C4571A;">${this.state.orderNumber}</strong></p>
             <p style="font-size:14px;font-weight:500;color:rgba(44,26,14,0.55);margin-bottom:36px;">Nous vous contacterons sur WhatsApp pour finaliser la livraison.</p>
-            <button style="padding:14px 32px;background:linear-gradient(135deg,#C4571A,#E07828);color:#FDF6EC;font-family:'Nunito';font-size:14px;font-weight:800;border:none;cursor:pointer;border-radius:100px;box-shadow:0 6px 20px rgba(196,87,26,0.25);transition:opacity 0.2s;" onclick="app.setState({page:'home',cart:[],orderConfirmed:false,orderNumber:'',checkoutForm:{nom:'',adresse:'',tel:'',note:''}});">Retour à l'accueil</button>
+            <button style="padding:14px 32px;background:linear-gradient(135deg,#C4571A,#E07828);color:#FDF6EC;font-family:'Nunito';font-size:14px;font-weight:800;border:none;cursor:pointer;border-radius:100px;box-shadow:0 6px 20px rgba(196,87,26,0.25);transition:opacity 0.2s;" onclick="app.setState({page:'home',cart:[],orderConfirmed:false,orderNumber:'',checkoutForm:{nom:'',email:'',adresse:'',tel:'',note:''}});">Retour à l'accueil</button>
           </div>
         </div>
       `;
@@ -665,6 +688,10 @@ class ElMorjeneApp {
               <div>
                 <label style="display:block;font-size:12px;font-weight:700;color:rgba(44,26,14,0.6);margin-bottom:6px;letter-spacing:0.5px;">Nom & Prénom *</label>
                 <input type="text" placeholder="Ex: Karim Benali" value="${form.nom}" onchange="app.updateCheckoutForm('nom', this.value)" style="width:100%;padding:13px 16px;background:#FFFAF3;border:1.5px solid rgba(196,87,26,0.2);border-radius:12px;font-family:'Nunito';font-size:14px;font-weight:600;color:#2C1A0E;outline:none;">
+              </div>
+              <div>
+                <label style="display:block;font-size:12px;font-weight:700;color:rgba(44,26,14,0.6);margin-bottom:6px;letter-spacing:0.5px;">Email</label>
+                <input type="email" placeholder="Ex: karim@example.com" value="${form.email}" onchange="app.updateCheckoutForm('email', this.value)" style="width:100%;padding:13px 16px;background:#FFFAF3;border:1.5px solid rgba(196,87,26,0.2);border-radius:12px;font-family:'Nunito';font-size:14px;font-weight:600;color:#2C1A0E;outline:none;">
               </div>
               <div>
                 <label style="display:block;font-size:12px;font-weight:700;color:rgba(44,26,14,0.6);margin-bottom:6px;letter-spacing:0.5px;">Adresse de livraison *</label>
