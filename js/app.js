@@ -173,7 +173,7 @@ class ElMorjeneApp {
     formData.append('Livraison', delivery.toFixed(2) + ' Fr.');
     formData.append('Total', total + ' Fr.');
 
-    fetch('https://formsubmit.co/liliboukhalfi@gmail.com', { method: 'POST', body: formData }).catch(e => {});
+    fetch('https://formsubmit.co/0a4f6dd8661ff406fbacb18c758f6602', { method: 'POST', body: formData }).catch(e => {});
   }
 
   confirmOrder() {
