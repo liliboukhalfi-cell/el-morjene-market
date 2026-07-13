@@ -79,6 +79,29 @@ class ElMorjeneApp {
         nutrition: [
           { label: 'Énergie (100g)', value: '≈ 555 kcal' }
         ]
+      },
+      {
+        id: 'peanut-butter',
+        name: 'Peanut Butter',
+        images: {
+          '200g': 'uploads/peanut-butter-200g.jpg',
+          '350g': 'uploads/peanut-butter-350g.jpg',
+          '700g': 'uploads/peanut-butter-700g.jpg'
+        },
+        category: 'Cacahuète · Crémeux',
+        tagline: 'La saveur intense de la cacahuète grillée.',
+        description: "El Morjene Peanut Butter, c'est la passion pour les cacahuètes. Riche, crémeuse, avec le goût authentique de la cacahuète grillée. Une pâte généreuse pour les vrais amateurs.",
+        color: '#8B6914',
+        badge: 'CACAHUÈTE',
+        prices: { '200g': 3.50, '350g': 4.00, '700g': 7.00 },
+        currency: 'Fr.',
+        storage: 'À conserver dans un endroit frais et sec.',
+        ingredients: 'Sucre, graisse végétale, cacahuète 25%, lait écrémé en poudre, lactosérum, émulsifiant : lécithine de soja (SIN 322).',
+        nutrition: [
+          { label: 'Énergie (200g)', value: '1 314 kcal' },
+          { label: 'Énergie (350g)', value: '2 300 kcal' },
+          { label: 'Énergie (700g)', value: '4 060 kcal' }
+        ]
       }
     ];
 
