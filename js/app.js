@@ -448,7 +448,7 @@ class ElMorjeneApp {
         </div>
 
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:36px;">
-          ${['tous', 'classique', 'rocher', 'rocher-blanc'].map(filter => `
+          ${['tous', 'classique', 'rocher', 'rocher-blanc', 'peanut-butter'].map(filter => `
             <button style="padding:9px 22px;background:${this.state.catalogFilter === filter ? 'linear-gradient(135deg,#C4571A,#E07828)' : 'rgba(196,87,26,0.08)'};color:${this.state.catalogFilter === filter ? '#FDF6EC' : '#C4571A'};border:${this.state.catalogFilter === filter ? 'none' : '1.5px solid rgba(196,87,26,0.25)'};font-family:'Nunito';font-size:13px;font-weight:800;cursor:pointer;border-radius:100px;transition:all 0.2s;" onclick="app.setState({catalogFilter:'${filter}'})">
               ${filter === 'tous' ? 'Tous' : this.catalog.find(p => p.id === filter)?.name}
             </button>
