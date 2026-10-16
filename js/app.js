@@ -1,3 +1,6 @@
+// Échappe le texte saisi par le client avant de l'insérer dans du HTML (anti-XSS)
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
 class ElMorjeneApp {
   constructor() {
     this.state = {
@@ -226,7 +229,7 @@ class ElMorjeneApp {
       .info{background:#FDF6EC;padding:12px;border-radius:8px;font-size:13px;margin:16px 0}</style></head>
       <body><h1>El Morjene Market</h1>
       <div class="sub">Ticket de commande — ${date}</div>
-      <div class="info"><strong>Client :</strong> ${f.nom}<br><strong>Adresse :</strong> ${f.adresse}<br><strong>Tél :</strong> ${f.tel}${f.note ? `<br><strong>Note :</strong> ${f.note}` : ''}</div>
+      <div class="info"><strong>Client :</strong> ${esc(f.nom)}<br><strong>Adresse :</strong> ${esc(f.adresse)}<br><strong>Tél :</strong> ${esc(f.tel)}${f.note ? `<br><strong>Note :</strong> ${esc(f.note)}` : ''}</div>
       <table><tr><th>Produit</th><th>Qté</th><th>Prix</th></tr>${rows}</table>
       <div class="total">Sous-total : ${subtotal.toFixed(2)} Fr.</div>
       <div class="total">Livraison : ${delivery.toFixed(2)} Fr.</div>
@@ -713,23 +716,23 @@ class ElMorjeneApp {
             <div style="display:flex;flex-direction:column;gap:16px;">
               <div>
                 <label style="display:block;font-size:12px;font-weight:700;color:rgba(44,26,14,0.6);margin-bottom:6px;letter-spacing:0.5px;">Nom & Prénom *</label>
-                <input type="text" placeholder="Ex: Karim Benali" value="${form.nom}" onchange="app.updateCheckoutForm('nom', this.value)" style="width:100%;padding:13px 16px;background:#FFFAF3;border:1.5px solid rgba(196,87,26,0.2);border-radius:12px;font-family:'Nunito';font-size:14px;font-weight:600;color:#2C1A0E;outline:none;">
+                <input type="text" placeholder="Ex: Karim Benali" value="${esc(form.nom)}" onchange="app.updateCheckoutForm('nom', this.value)" style="width:100%;padding:13px 16px;background:#FFFAF3;border:1.5px solid rgba(196,87,26,0.2);border-radius:12px;font-family:'Nunito';font-size:14px;font-weight:600;color:#2C1A0E;outline:none;">
               </div>
               <div>
                 <label style="display:block;font-size:12px;font-weight:700;color:rgba(44,26,14,0.6);margin-bottom:6px;letter-spacing:0.5px;">Email</label>
-                <input type="email" placeholder="Ex: karim@example.com" value="${form.email}" onchange="app.updateCheckoutForm('email', this.value)" style="width:100%;padding:13px 16px;background:#FFFAF3;border:1.5px solid rgba(196,87,26,0.2);border-radius:12px;font-family:'Nunito';font-size:14px;font-weight:600;color:#2C1A0E;outline:none;">
+                <input type="email" placeholder="Ex: karim@example.com" value="${esc(form.email)}" onchange="app.updateCheckoutForm('email', this.value)" style="width:100%;padding:13px 16px;background:#FFFAF3;border:1.5px solid rgba(196,87,26,0.2);border-radius:12px;font-family:'Nunito';font-size:14px;font-weight:600;color:#2C1A0E;outline:none;">
               </div>
               <div>
                 <label style="display:block;font-size:12px;font-weight:700;color:rgba(44,26,14,0.6);margin-bottom:6px;letter-spacing:0.5px;">Adresse de livraison *</label>
-                <textarea placeholder="Rue, ville, code postal..." onchange="app.updateCheckoutForm('adresse', this.value)" style="width:100%;padding:13px 16px;background:#FFFAF3;border:1.5px solid rgba(196,87,26,0.2);border-radius:12px;font-family:'Nunito';font-size:14px;font-weight:600;color:#2C1A0E;outline:none;resize:vertical;min-height:88px;">${form.adresse}</textarea>
+                <textarea placeholder="Rue, ville, code postal..." onchange="app.updateCheckoutForm('adresse', this.value)" style="width:100%;padding:13px 16px;background:#FFFAF3;border:1.5px solid rgba(196,87,26,0.2);border-radius:12px;font-family:'Nunito';font-size:14px;font-weight:600;color:#2C1A0E;outline:none;resize:vertical;min-height:88px;">${esc(form.adresse)}</textarea>
               </div>
               <div>
                 <label style="display:block;font-size:12px;font-weight:700;color:rgba(44,26,14,0.6);margin-bottom:6px;letter-spacing:0.5px;">Numéro WhatsApp *</label>
-                <input type="tel" placeholder="Ex: +41 79 123 45 67" value="${form.tel}" onchange="app.updateCheckoutForm('tel', this.value)" style="width:100%;padding:13px 16px;background:#FFFAF3;border:1.5px solid rgba(196,87,26,0.2);border-radius:12px;font-family:'Nunito';font-size:14px;font-weight:600;color:#2C1A0E;outline:none;">
+                <input type="tel" placeholder="Ex: +41 79 123 45 67" value="${esc(form.tel)}" onchange="app.updateCheckoutForm('tel', this.value)" style="width:100%;padding:13px 16px;background:#FFFAF3;border:1.5px solid rgba(196,87,26,0.2);border-radius:12px;font-family:'Nunito';font-size:14px;font-weight:600;color:#2C1A0E;outline:none;">
               </div>
               <div>
                 <label style="display:block;font-size:12px;font-weight:700;color:rgba(44,26,14,0.6);margin-bottom:6px;letter-spacing:0.5px;">Note / Commentaire</label>
-                <textarea placeholder="Instructions spéciales, horaires de livraison..." onchange="app.updateCheckoutForm('note', this.value)" style="width:100%;padding:13px 16px;background:#FFFAF3;border:1.5px solid rgba(196,87,26,0.2);border-radius:12px;font-family:'Nunito';font-size:14px;font-weight:600;color:#2C1A0E;outline:none;resize:vertical;min-height:72px;">${form.note}</textarea>
+                <textarea placeholder="Instructions spéciales, horaires de livraison..." onchange="app.updateCheckoutForm('note', this.value)" style="width:100%;padding:13px 16px;background:#FFFAF3;border:1.5px solid rgba(196,87,26,0.2);border-radius:12px;font-family:'Nunito';font-size:14px;font-weight:600;color:#2C1A0E;outline:none;resize:vertical;min-height:72px;">${esc(form.note)}</textarea>
               </div>
             </div>
           </div>

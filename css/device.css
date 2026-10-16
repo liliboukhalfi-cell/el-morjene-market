@@ -1,0 +1,66 @@
+/*
+ * El Mordjen — adaptation selon l'appareil.
+ * À charger APRÈS ton CSS principal. Fonctionne avec device-detect.js.
+ * Remplace/ajuste les noms de classes (.navbar, .container…) par ceux de ton site.
+ */
+
+/* ---------- Classes utilitaires : à mettre sur n'importe quel élément ---------- */
+.only-mobile, .only-tablet, .only-desktop, .only-app { display: none !important; }
+html[data-device="mobile"]  .only-mobile  { display: revert !important; }
+html[data-device="tablet"]  .only-tablet  { display: revert !important; }
+html[data-device="desktop"] .only-desktop { display: revert !important; }
+html[data-app="true"]       .only-app     { display: revert !important; }
+
+html[data-device="mobile"]  .hide-mobile  { display: none !important; }
+html[data-device="tablet"]  .hide-tablet  { display: none !important; }
+html[data-device="desktop"] .hide-desktop { display: none !important; }
+html[data-app="true"]       .hide-in-app  { display: none !important; } /* ex : bouton "Installer l'appli" */
+
+/* ---------- Smartphone ---------- */
+html[data-device="mobile"] body {
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+/* Zones cliquables assez grandes pour un doigt (≈ 44 px recommandés) */
+html[data-device="mobile"] button,
+html[data-device="mobile"] a.btn,
+html[data-device="mobile"] [role="button"],
+html[data-device="mobile"] input,
+html[data-device="mobile"] select {
+  min-height: 44px;
+}
+/* Évite le zoom automatique d'iOS quand on touche un champ de texte */
+html[data-device="mobile"] input,
+html[data-device="mobile"] select,
+html[data-device="mobile"] textarea {
+  font-size: 16px;
+}
+
+/* ---------- Tablette ---------- */
+html[data-device="tablet"] .container { max-width: 900px; margin-inline: auto; }
+
+/* ---------- PC : on garde les effets de survol ---------- */
+html[data-device="desktop"] .container { max-width: 1200px; margin-inline: auto; }
+
+/* ---------- Pas de survol sur écran tactile ---------- */
+@media (hover: none) {
+  .hover-only { display: none !important; }
+}
+
+/* ---------- Mode appli installée (PWA / APK) ---------- */
+html[data-app="true"] body {
+  /* Encoche, barre de navigation Android, barre d'accueil iPhone */
+  padding-top: env(safe-area-inset-top);
+  padding-right: env(safe-area-inset-right);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  overscroll-behavior-y: contain; /* pas de "tirer pour rafraîchir" parasite */
+  -webkit-user-select: none;       /* sensation d'appli : pas de sélection de texte partout */
+  user-select: none;
+}
+html[data-app="true"] input,
+html[data-app="true"] textarea,
+html[data-app="true"] [contenteditable] {
+  -webkit-user-select: text;
+  user-select: text;
+}

@@ -1,8 +1,19 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>El Morjene Market</title>
+<meta name="description" content="Pâte à tartiner artisanale suisse — commande en ligne.">
+<meta name="theme-color" content="#C4571A">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="El Morjene">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<script src="js/device-detect.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;0,900;1,700;1,800;1,900&family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -57,9 +68,16 @@ button { font-family: inherit; }
 input, textarea { font-family: inherit; }
 .hidden { display: none; }
 </style>
+<link rel="stylesheet" href="css/device.css">
 </head>
 <body>
 <div id="app" style="min-height:100vh; background:#FDF6EC; color:#2C1A0E; font-family:'Nunito',sans-serif;"></div>
 <script src="js/app.js"></script>
+<script src="js/install.js"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js'); });
+}
+</script>
 </body>
 </html>

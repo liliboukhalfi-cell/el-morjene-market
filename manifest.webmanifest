@@ -1,0 +1,18 @@
+{
+  "name": "El Morjene Market",
+  "short_name": "El Morjene",
+  "description": "Pâte à tartiner artisanale suisse — commande en ligne.",
+  "lang": "fr",
+  "start_url": "/?source=app",
+  "scope": "/",
+  "id": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FDF6EC",
+  "theme_color": "#C4571A",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
