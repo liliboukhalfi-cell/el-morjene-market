@@ -27,6 +27,14 @@
   var view = forced || (h.getAttribute('data-device') === 'mobile' ? 'mobile' : 'desktop');
   h.setAttribute('data-view', view);
   document.write('<link rel="stylesheet" href="css/' + view + '.css">');
+  if (view === 'mobile') {
+    document.write('<link rel="stylesheet" href="css/mobile-polish.css">');
+    // Thème clair/sombre : choix mémorisé, sinon réglage du téléphone (avant l'affichage, pour éviter un flash blanc)
+    var pref = null; try { pref = JSON.parse(localStorage.getItem('em-theme')); } catch (e) {}
+    var dark = pref === 'dark' || (pref !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    h.setAttribute('data-theme', dark ? 'dark' : 'light');
+    var tc = document.querySelector('meta[name="theme-color"]'); if (tc && dark) tc.setAttribute('content', '#1A110B');
+  }
 })();
 </script>
 <link rel="stylesheet" href="css/device.css">
@@ -38,12 +46,16 @@
 <script>
 (function () {
   var view = document.documentElement.getAttribute('data-view');
+  if (view === 'mobile') document.write('<script src="js/mobile-polish.js"><\/script>');
   document.write('<script src="js/' + (view === 'mobile' ? 'app-mobile' : 'app') + '.js"><\/script>');
 })();
 </script>
+<script src="js/version.js"></script>
+<script src="js/updater.js"></script>
 <script src="js/install.js"></script>
 <script>
-if ('serviceWorker' in navigator) {
+// Dans l'appli Android, les fichiers sont déjà dans l'APK : pas de service worker (il garderait d'anciennes versions)
+if ('serviceWorker' in navigator && !window.Capacitor && !/; wv\)/.test(navigator.userAgent)) {
   window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js'); });
 }
 </script>

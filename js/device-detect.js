@@ -56,7 +56,9 @@
       nav.standalone === true; // Safari iOS ("Sur l'écran d'accueil")
     var capacitor = !!(window.Capacitor && typeof window.Capacitor.isNativePlatform === 'function' && window.Capacitor.isNativePlatform());
     var twa = typeof document.referrer === 'string' && document.referrer.indexOf('android-app://') === 0;
-    return standalone || capacitor || twa;
+    var webview = /; wv\)/.test(nav.userAgent || ''); // WebView Android = appli native
+    var forced = /[?&]app=1/.test(location.search);   // pour tester l'affichage "appli" dans un navigateur
+    return standalone || capacitor || twa || webview || forced;
   }
 
   var state = { device: null, isApp: null, orientation: null };

@@ -3,18 +3,22 @@
  * - Ne touche JAMAIS aux requêtes POST (commandes FormSubmit) ni aux autres sites
  * Change CACHE_VERSION à chaque mise à jour du site pour forcer le rafraîchissement.
  */
-const CACHE_VERSION = 'v2';
+const CACHE_VERSION = 'v5';
 const CACHE = 'el-morjene-' + CACHE_VERSION;
 const PRECACHE = [
   './',
   'index.html',
   'js/app.js',
   'js/app-mobile.js',
+  'js/mobile-polish.js',
   'js/device-detect.js',
   'js/install.js',
+  'js/version.js',
+  'js/updater.js',
   'css/device.css',
   'css/desktop.css',
   'css/mobile.css',
+  'css/mobile-polish.css',
   'manifest.webmanifest',
   'icons/icon-192.png',
   'icons/icon-512.png',

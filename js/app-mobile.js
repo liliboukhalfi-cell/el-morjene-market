@@ -1,6 +1,12 @@
 // Échappe le texte saisi par le client avant de l'insérer dans du HTML (anti-XSS)
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
+// Mémoire du téléphone (favoris, thème) : ne plante jamais si le stockage est bloqué
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+};
+
 class ElMorjeneApp {
   constructor() {
     this.state = {
@@ -12,6 +18,8 @@ class ElMorjeneApp {
       catalogFilter: 'tous',
       checkoutForm: { nom: '', email: '', adresse: '', tel: '', note: '' },
       orderConfirmed: false,
+      update: { status: 'idle', info: null },
+      favorites: [].concat(store.get('em-favs', [])).filter(x => typeof x === 'string'),
       orderNumber: '',
       selectedProduct: null,
       menuOpen: false
@@ -109,7 +117,20 @@ class ElMorjeneApp {
   }
 
   init() {
+    try { history.replaceState({ p: 'home' }, ''); } catch (e) {}
+    window.addEventListener('popstate', (e) => {
+      const st = e.state || { p: 'home' };
+      if (st.p === 'product') {
+        const prod = this.catalog.find(x => x.id === st.id);
+        if (prod) return this.setState({ page: 'product', selectedProduct: prod, menuOpen: false });
+      }
+      this.setState({ page: st.p || 'home', menuOpen: false });
+    });
     this.render();
+    // Dans l'appli : vérifie discrètement les mises à jour au lancement (au plus une fois par jour)
+    if (this.inApp() && Date.now() - store.get('em-lastcheck', 0) > 86400000) {
+      setTimeout(() => this.checkUpdate(true), 2500);
+    }
   }
 
   setState(updates) {
@@ -117,11 +138,106 @@ class ElMorjeneApp {
     this.render();
   }
 
+  toggleFav(id) {
+    const has = this.state.favorites.includes(id);
+    const favs = has ? this.state.favorites.filter(f => f !== id) : [...this.state.favorites, id];
+    store.set('em-favs', favs);
+    this._pop = has ? null : id;
+    this.setState({ favorites: favs });
+    setTimeout(() => { this._pop = null; }, 500);
+    if (window.mpToast) window.mpToast(has ? 'Retiré des favoris' : 'Ajouté aux favoris');
+  }
+
+  isDark() { return document.documentElement.getAttribute('data-theme') === 'dark'; }
+
+  toggleTheme() {
+    const next = this.isDark() ? 'light' : 'dark';
+    store.set('em-theme', next);
+    document.documentElement.setAttribute('data-theme', next);
+    const m = document.querySelector('meta[name="theme-color"]');
+    if (m) m.setAttribute('content', next === 'dark' ? '#1A110B' : '#C4571A');
+    this.setState({ menuOpen: false });
+  }
+
+  heart(id) {
+    const on = this.state.favorites.includes(id);
+    return `<button class="fav-btn ${on ? 'on' : ''} ${this._pop === id ? 'pop' : ''}" aria-label="${on ? 'Retirer des favoris' : 'Ajouter aux favoris'}" aria-pressed="${on}" onclick="event.stopPropagation();app.toggleFav('${id}')"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 21C12 21 3 14.500 3 8.800 3 6.100 5.100 4 7.600 4c1.700 0 3.400.9 4.400 2.500C13 4.900 14.700 4 16.400 4 18.900 4 21 6.100 21 8.800 21 14.500 12 21 12 21z" stroke-linejoin="round"/></svg></button>`;
+  }
+
+  renderTabBar() {
+    const p = this.state.page;
+    const ico = d => `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+    const tab = (page, label, svg, active, count) => `<button class="tab ${active ? 'active' : ''}" onclick="app.goPage('${page}')"${active ? ' aria-current="page"' : ''}><span class="tab-ico">${svg}</span>${label}${count ? `<span class="tab-badge">${count}</span>` : ''}</button>`;
+    return `<div class="tabbar" role="navigation" aria-label="Navigation principale">
+      ${tab('home', 'Accueil', ico('<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/>'), p === 'home')}
+      ${tab('catalog', 'Produits', ico('<rect x="3" y="3" width="7" height="7" rx="1.500"/><rect x="14" y="3" width="7" height="7" rx="1.500"/><rect x="3" y="14" width="7" height="7" rx="1.500"/><rect x="14" y="14" width="7" height="7" rx="1.500"/>'), p === 'catalog' || p === 'product')}
+      ${tab('favorites', 'Favoris', ico('<path d="M12 21C12 21 3 14.500 3 8.800 3 6.100 5.100 4 7.600 4c1.700 0 3.400.9 4.400 2.500C13 4.900 14.700 4 16.400 4 18.900 4 21 6.100 21 8.800 21 14.500 12 21 12 21z"/>'), p === 'favorites', this.state.favorites.length)}
+      ${tab('cart', 'Panier', ico('<path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 01-8 0"/>'), p === 'cart' || p === 'checkout', this.getCartCount())}
+    </div>`;
+  }
+
+  renderFavoritesPage() {
+    const favs = this.catalog.filter(p => this.state.favorites.includes(p.id));
+    return `
+      ${this.renderNav()}
+      <section class="catalog">
+        <h1>Mes <span style="color:#C4571A;">favoris</span></h1>
+        ${favs.length ? `<div class="product-grid">${favs.map(p => this.productCard(p)).join('')}</div>` : `
+          <div class="empty-fav">
+            <p><strong>Pas encore de favori.</strong></p>
+            <p>Touche le cœur d'un produit pour le retrouver ici.</p>
+            <button class="hero-btn" onclick="app.goPage('catalog')">Voir les produits</button>
+          </div>`}
+      </section>
+    `;
+  }
+
+  inApp() { return document.documentElement.getAttribute('data-app') === 'true'; }
+
+  checkUpdate(silent) {
+    if (!window.EMUpdater) return;
+    if (!silent) this.setState({ update: { status: 'checking', info: null } });
+    window.EMUpdater.check().then(info => {
+      store.set('em-lastcheck', Date.now());
+      this.setState({ update: { status: info.hasUpdate ? 'available' : 'uptodate', info } });
+      if (silent && info.hasUpdate && window.mpToast) window.mpToast('Nouvelle version disponible : voir le menu');
+    }).catch(() => {
+      if (!silent) this.setState({ update: { status: 'error', info: null } });
+    });
+  }
+
+  renderUpdatesPage() {
+    const u = this.state.update, v = window.APP_VERSION || '';
+    const info = u.info;
+    let msg = 'Vérifie si une nouvelle version est disponible.';
+    if (u.status === 'checking') msg = 'Recherche en cours…';
+    else if (u.status === 'uptodate') msg = 'Tu as la dernière version.';
+    else if (u.status === 'available') msg = 'Nouvelle version disponible : ' + esc(info.version);
+    else if (u.status === 'error') msg = "Impossible de vérifier pour l'instant. Vérifie ta connexion et réessaie.";
+    const notes = info && info.notes ? `<div class="upd-notes"><strong>Nouveautés</strong><p>${esc(info.notes).replace(/\n/g, '<br>')}</p></div>` : '';
+    const dl = u.status === 'available' ? `<a class="hero-btn upd-dl" href="${esc(info.url)}" target="_blank" rel="noopener">Télécharger la version ${esc(info.version)}</a>
+        <p class="upd-help">Une fois téléchargé, ouvre le fichier pour l'installer. Android peut te demander d'autoriser l'installation : c'est normal.</p>` : '';
+    return `
+      ${this.renderNav()}
+      <section class="catalog updates">
+        <h1>Mises à <span style="color:#C4571A;">jour</span></h1>
+        <div class="upd-card">
+          <div class="upd-ver">Version installée : <strong>${esc(v || 'site web')}</strong></div>
+          <p class="upd-msg" role="status">${msg}</p>
+          <button class="hero-btn" onclick="app.checkUpdate()" ${u.status === 'checking' ? 'disabled' : ''}>Vérifier les mises à jour</button>
+          ${dl}
+        </div>
+        ${notes}
+      </section>
+    `;
+  }
+
   toggleMenu() {
     this.setState({ menuOpen: !this.state.menuOpen });
   }
 
   goPage(page) {
+    try { history.pushState({ p: page }, ''); } catch (e) {}
     this.setState({ page, previousPage: this.state.page, menuOpen: false });
     window.scrollTo({ top: 0 });
   }
@@ -131,6 +247,7 @@ class ElMorjeneApp {
       const parseSize = s => parseFloat(s) * (s.includes('kg') ? 1000 : 1);
       return parseSize(a) - parseSize(b);
     })[0];
+    try { history.pushState({ p: 'product', id: p.id }, ''); } catch (e) {}
     this.setState({ page: 'product', previousPage: this.state.page, selectedSize: defaultSize, justAdded: false, selectedProduct: p });
     window.scrollTo({ top: 0 });
   }
@@ -271,6 +388,8 @@ class ElMorjeneApp {
           <a onclick="app.goPage('home')">Accueil</a>
           <a onclick="app.goPage('catalog')">Produits</a>
           <a onclick="app.goPage('cart')">Panier (${this.getCartCount()})</a>
+          <a onclick="app.toggleTheme()">${this.isDark() ? 'Mode clair' : 'Mode sombre'}</a>
+          ${this.inApp() ? `<a onclick="app.goPage('updates')">Mises à jour${this.state.update.status === 'available' ? ' •' : ''}</a>` : ''}
         </div>
       ` : ''}
     `;
@@ -317,6 +436,28 @@ class ElMorjeneApp {
     `;
   }
 
+  productCard(prod) {
+    return `
+            <div class="product-card" onclick="app.goProduct(app.catalog.find(p => p.id === '${prod.id}'))">
+              <div class="product-image" style="background: radial-gradient(ellipse at 50% 60%, ${prod.color}15 0%, transparent 70%)">
+                ${prod.images && prod.images[Object.keys(prod.images)[0]] ?
+                  `<img src="${prod.images[Object.keys(prod.images)[0]]}" alt="${prod.name}">` : ''}
+                ${this.heart(prod.id)}
+                <div class="product-badge" style="background:${prod.color}18;color:${prod.color};border-color:${prod.color}35">${prod.badge}</div>
+              </div>
+              <div class="product-info">
+                <div class="product-category" style="color:${prod.color}">${prod.category}</div>
+                <h3 class="product-name">${prod.name}</h3>
+                <p class="product-tagline">${prod.tagline}</p>
+                <div class="product-footer">
+                  <div class="product-price">${Object.values(prod.prices)[0]} Fr.</div>
+                  <button class="product-btn">Voir →</button>
+                </div>
+              </div>
+            </div>
+          `;
+  }
+
   renderCatalogPage() {
     const filtered = this.state.catalogFilter === 'tous' ? this.catalog : this.catalog.filter(p => p.id === this.state.catalogFilter);
 
@@ -332,24 +473,7 @@ class ElMorjeneApp {
           `).join('')}
         </div>
         <div class="product-grid">
-          ${filtered.map(prod => `
-            <div class="product-card" onclick="app.goProduct(app.catalog.find(p => p.id === '${prod.id}'))">
-              <div class="product-image" style="background: radial-gradient(ellipse at 50% 60%, ${prod.color}15 0%, transparent 70%)">
-                ${prod.images && prod.images[Object.keys(prod.images)[0]] ?
-                  `<img src="${prod.images[Object.keys(prod.images)[0]]}" alt="${prod.name}">` : ''}
-                <div class="product-badge" style="background:${prod.color}18;color:${prod.color};border-color:${prod.color}35">${prod.badge}</div>
-              </div>
-              <div class="product-info">
-                <div class="product-category" style="color:${prod.color}">${prod.category}</div>
-                <h3 class="product-name">${prod.name}</h3>
-                <p class="product-tagline">${prod.tagline}</p>
-                <div class="product-footer">
-                  <div class="product-price">${Object.values(prod.prices)[0]} Fr.</div>
-                  <button class="product-btn">Voir →</button>
-                </div>
-              </div>
-            </div>
-          `).join('')}
+          ${filtered.map(prod => this.productCard(prod)).join('')}
         </div>
       </section>
       <footer>
@@ -371,6 +495,7 @@ class ElMorjeneApp {
       <section class="product-detail">
         <a class="back-link" onclick="app.goPage('catalog')">← Retour</a>
         <div class="detail-image" style="background: radial-gradient(ellipse at 50% 60%, ${prod.color}12 0%, transparent 65%)">
+          ${this.heart(prod.id)}
           ${prod.images && prod.images[size] ?
             `<img src="${prod.images[size]}" alt="${prod.name}">` :
             '<div style="color:' + prod.color + '55">PHOTO</div>'}
@@ -574,11 +699,17 @@ class ElMorjeneApp {
       case 'checkout':
         content = this.renderCheckoutPage();
         break;
+      case 'favorites':
+        content = this.renderFavoritesPage();
+        break;
+      case 'updates':
+        content = this.renderUpdatesPage();
+        break;
       default:
         content = this.renderHomePage();
     }
 
-    app.innerHTML = content;
+    app.innerHTML = content + this.renderTabBar();
   }
 }
 

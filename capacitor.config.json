@@ -1,0 +1,16 @@
+{
+  "appId": "com.elmorjene.market",
+  "appName": "El Morjene",
+  "webDir": "www",
+  "backgroundColor": "#C4571A",
+  "server": {
+    "androidScheme": "https",
+    "cleartext": false,
+    "allowNavigation": []
+  },
+  "android": {
+    "allowMixedContent": false,
+    "webContentsDebuggingEnabled": false,
+    "backgroundColor": "#C4571A"
+  }
+}

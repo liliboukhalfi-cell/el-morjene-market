@@ -1,0 +1,148 @@
+/* El Morjene — finitions version mobile : retours au toucher, écran de lancement, transitions.
+   Les animations répondent aux gestes de la personne ; seul l'écran de lancement s'anime seul. */
+
+/* Appui : le bouton "s'enfonce" puis revient avec un léger rebond */
+button, [onclick], .cart-btn, .add-cart-btn, .filter-btn {
+  touch-action: manipulation;
+  transition: transform .18s cubic-bezier(.3, 1.5, .5, 1);
+}
+button:active, [onclick]:active, .cart-btn:active, .add-cart-btn:active, .filter-btn:active {
+  transform: scale(.96);
+  transition-duration: .08s;
+}
+:focus-visible { outline: 3px solid #E07828; outline-offset: 2px; }
+
+/* Onde de couleur au point d'appui (boutons uniquement) */
+.mp-ripple {
+  position: absolute; border-radius: 50%; pointer-events: none;
+  background: rgba(255, 255, 255, .45); transform: scale(0);
+  animation: mp-ripple .55s ease-out forwards;
+}
+@keyframes mp-ripple { to { transform: scale(1); opacity: 0; } }
+
+/* Le compteur du panier "saute" quand on ajoute un produit */
+.cart-badge.mp-bump { animation: mp-bump .5s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes mp-bump { 0% { transform: scale(1); } 40% { transform: scale(1.6); } 100% { transform: scale(1); } }
+
+/* Message de confirmation */
+.mp-toast {
+  position: fixed; left: 50%; bottom: calc(80px + env(safe-area-inset-bottom)); z-index: 9998;
+  transform: translate(-50%, 16px); opacity: 0; pointer-events: none;
+  padding: 11px 20px; border-radius: 999px; background: #2C1A0E; color: #FDF6EC;
+  font: 700 14px 'Nunito', sans-serif; box-shadow: 0 8px 24px rgba(44, 26, 14, .3);
+  transition: opacity .25s ease, transform .25s ease;
+}
+.mp-toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* Changement de page : fondu doux */
+#app.mp-page { animation: mp-page .3s ease-out; }
+@keyframes mp-page { from { opacity: .2; } }
+
+/* Images : lueur de chargement tant qu'elles ne sont pas arrivées */
+img:not(.mp-loaded) {
+  background: linear-gradient(100deg, #f3e6d4 30%, #faf0e2 50%, #f3e6d4 70%) 0 0 / 200% 100%;
+  animation: mp-shimmer 1.4s linear infinite;
+}
+@keyframes mp-shimmer { to { background-position: -200% 0; } }
+
+/* Écran de lancement */
+#mp-splash {
+  position: fixed; inset: 0; z-index: 10000; display: flex; align-items: center; justify-content: center;
+  background: #C4571A; color: #FDF6EC; padding: env(safe-area-inset-top) 24px env(safe-area-inset-bottom);
+  transition: opacity .45s ease, visibility .45s;
+}
+#mp-splash.out { opacity: 0; visibility: hidden; }
+.mp-splash-in { text-align: center; }
+.mp-logo { display: block; width: 92px; margin: 0 auto 20px; animation: mp-rise .7s cubic-bezier(.2, .8, .2, 1) both; }
+.mp-word {
+  font: italic 800 clamp(40px, 14vw, 64px)/1 'Playfair Display', serif;
+  animation: mp-rise .7s cubic-bezier(.2, .8, .2, 1) both;
+}
+.mp-word b { color: #F2A65A; }
+.mp-sub { margin-top: 10px; font: 600 14px 'Nunito', sans-serif; opacity: .85; animation: mp-rise .7s .15s cubic-bezier(.2, .8, .2, 1) both; }
+.mp-bar { margin: 28px auto 0; width: min(56vw, 220px); height: 6px; border-radius: 99px; background: rgba(253, 246, 236, .25); overflow: hidden; }
+.mp-bar i { display: block; height: 100%; border-radius: inherit; background: #FDF6EC; transform-origin: left; animation: mp-fill 1.1s .25s cubic-bezier(.5, 0, .2, 1) both; }
+@keyframes mp-rise { from { opacity: 0; transform: translateY(14px); } }
+@keyframes mp-fill { from { transform: scaleX(0); } }
+
+/* Confettis à la confirmation de commande */
+#mp-confetti { position: fixed; inset: 0; z-index: 9997; pointer-events: none; }
+
+/* Respect du réglage "réduire les animations" */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+
+/* ---------- Barre de navigation du bas ---------- */
+body { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
+.tabbar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 900; display: flex;
+  padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
+  background: rgba(253, 246, 236, .94); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border-top: 1px solid rgba(196, 87, 26, .14);
+}
+.tab {
+  flex: 1; position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 4px 0; border: 0; background: none; color: rgba(44, 26, 14, .55); font: 700 11px 'Nunito', sans-serif;
+}
+.tab.active { color: #C4571A; }
+.tab-ico { width: 54px; height: 30px; border-radius: 15px; display: grid; place-items: center; transition: background .25s ease; }
+.tab.active .tab-ico { background: rgba(196, 87, 26, .13); }
+.tab-badge {
+  position: absolute; top: 0; left: calc(50% + 8px); min-width: 17px; height: 17px; padding: 0 4px; border-radius: 9px;
+  background: #C4571A; color: #FDF6EC; font: 800 10px/17px 'Nunito', sans-serif; text-align: center;
+}
+/* Les éléments flottants passent au-dessus de la barre */
+.mp-toast { bottom: calc(92px + env(safe-area-inset-bottom)); }
+body > button[aria-label^="Installer"] { bottom: calc(88px + env(safe-area-inset-bottom)) !important; }
+
+/* ---------- Favoris (coeur) ---------- */
+.product-image, .detail-image { position: relative; }
+.fav-btn {
+  position: absolute; top: 10px; left: 10px; z-index: 2; width: 38px; height: 38px; border-radius: 50%; border: 0;
+  display: grid; place-items: center; color: #C4571A; background: rgba(255, 250, 243, .92);
+  box-shadow: 0 2px 10px rgba(44, 26, 14, .14);
+}
+.fav-btn svg { fill: none; stroke: currentColor; stroke-width: 2; }
+.fav-btn.on svg { fill: #C4571A; }
+.fav-btn.pop svg { animation: mp-pop .45s cubic-bezier(.3, 1.8, .5, 1); }
+@keyframes mp-pop { 0% { transform: scale(.6); } 60% { transform: scale(1.35); } 100% { transform: scale(1); } }
+.empty-fav { text-align: center; padding: 56px 24px; display: grid; gap: 12px; justify-items: center; color: rgba(44, 26, 14, .6); font: 600 15px/1.5 'Nunito', sans-serif; }
+.empty-fav strong { color: #2C1A0E; font-size: 18px; }
+
+/* ---------- Mode sombre (suit le téléphone, ou le choix du menu) ---------- */
+html[data-theme="dark"] { color-scheme: dark; --color-dark: #F4E8D6; --color-gray: rgba(244, 232, 214, .6); }
+html[data-theme="dark"], html[data-theme="dark"] body, [data-theme="dark"] .carousel, [data-theme="dark"] .mobile-menu { background: #1A110B; }
+[data-theme="dark"] nav { background: rgba(26, 17, 11, .97); border-bottom-color: rgba(244, 232, 214, .1); }
+[data-theme="dark"] .hero, [data-theme="dark"] .catalog, [data-theme="dark"] .product-detail,
+[data-theme="dark"] .cart-page, [data-theme="dark"] .checkout-page { background: linear-gradient(160deg, #1A110B 0%, #241810 100%); }
+[data-theme="dark"] .carousel-item, [data-theme="dark"] .product-card, [data-theme="dark"] .detail-image,
+[data-theme="dark"] .cart-item, [data-theme="dark"] .cart-summary, [data-theme="dark"] [style*="background:#FFFAF3"] { background: #2A1D14 !important; }
+[data-theme="dark"] .hero p, [data-theme="dark"] .carousel-info p, [data-theme="dark"] .product-tagline, [data-theme="dark"] .detail-desc,
+[data-theme="dark"] .size-label, [data-theme="dark"] .size-btn, [data-theme="dark"] .cart-item-detail, [data-theme="dark"] footer .tagline,
+[data-theme="dark"] [style*="color:rgba(44,26,14"] { color: rgba(244, 232, 214, .62) !important; }
+[data-theme="dark"] .size-btn { border-color: rgba(244, 232, 214, .2); }
+[data-theme="dark"] .size-btn.active, [data-theme="dark"] .summary-row:last-of-type { color: var(--color-dark) !important; }
+[data-theme="dark"] .tabbar { background: rgba(26, 17, 11, .94); border-top-color: rgba(244, 232, 214, .1); }
+[data-theme="dark"] .tab { color: rgba(244, 232, 214, .55); }
+[data-theme="dark"] .tab.active { color: #F2A65A; }
+[data-theme="dark"] .tab.active .tab-ico { background: rgba(242, 166, 90, .16); }
+[data-theme="dark"] .fav-btn { background: rgba(42, 29, 20, .92); }
+[data-theme="dark"] .empty-fav { color: rgba(244, 232, 214, .6); }
+[data-theme="dark"] .empty-fav strong { color: #F4E8D6; }
+[data-theme="dark"] img:not(.mp-loaded) { background: linear-gradient(100deg, #2A1D14 30%, #34251A 50%, #2A1D14 70%) 0 0 / 200% 100%; }
+[data-theme="dark"] input, [data-theme="dark"] textarea { background: #2A1D14; color: #F4E8D6; border-color: rgba(244, 232, 214, .2); }
+
+[data-theme="dark"] .product-image img, [data-theme="dark"] .detail-image img { border-radius: 14px; }
+
+/* ---------- Page "Mises à jour" ---------- */
+.upd-card { display: grid; gap: 12px; padding: 20px; border-radius: 20px; background: #FFFAF3; border: 1.5px solid rgba(196, 87, 26, .12); font: 600 15px/1.5 'Nunito', sans-serif; }
+.upd-ver { color: rgba(44, 26, 14, .6); }
+.upd-ver strong { color: #C4571A; }
+.upd-msg { margin: 0; }
+.upd-dl { display: block; text-align: center; text-decoration: none; }
+.upd-help { margin: 0; font-size: 13px; color: rgba(44, 26, 14, .55); }
+.upd-notes { margin-top: 18px; padding: 0 4px; font: 600 14px/1.55 'Nunito', sans-serif; color: rgba(44, 26, 14, .75); }
+.upd-notes p { margin: 6px 0 0; }
+[data-theme="dark"] .upd-card { background: #2A1D14; border-color: rgba(244, 232, 214, .12); }
+[data-theme="dark"] .upd-ver, [data-theme="dark"] .upd-help, [data-theme="dark"] .upd-notes { color: rgba(244, 232, 214, .65); }
